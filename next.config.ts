@@ -4,7 +4,7 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8000/api/:path*", // Proxy to backend
+        destination: "https://fairsplit-api.onrender.com/api/:path*", // Proxy to backend
       },
     ];
   },
