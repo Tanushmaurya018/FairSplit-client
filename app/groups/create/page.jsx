@@ -8,24 +8,15 @@ import { FaArrowLeft, FaUsers, FaCheck } from "react-icons/fa";
 export default function CreateGroupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [memberLinksInput, setMemberLinksInput] = useState("");
+  const [memberIdsInput, setMemberIdsInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [msgType, setMsgType] = useState("error");
 
-  const extractUserIdFromLink = (link) => {
-    const trimmed = link.trim();
-    const match = trimmed.match(/\/user\/([a-zA-Z0-9]+)$|\/user\/([a-zA-Z0-9]+)\/?$/);
-    if (match) {
-      return match[1] || match[2];
-    }
-    return trimmed;
-  };
-
   const parseUserIds = (raw) =>
     raw
-      .split(/[\n,]+/)
-      .map((x) => extractUserIdFromLink(x.trim()))
+      .split(/[\s,]+/)
+      .map((id) => id.trim())
       .filter(Boolean);
 
   const handleSubmit = async (e) => {
@@ -34,8 +25,8 @@ export default function CreateGroupPage() {
     setLoading(true);
 
     try {
-      const memberIds = parseUserIds(memberLinksInput);
-      console.log(name, memberIds)
+      const memberIds = parseUserIds(memberIdsInput);
+      console.log(name, memberIds);
       const { data } = await axios.post("/api/group", { name, members: memberIds });
       const id = data?._id || data?.group?._id;
       setMsg("Group created successfully!");
@@ -53,7 +44,7 @@ export default function CreateGroupPage() {
     }
   };
 
-  const memberCount = parseUserIds(memberLinksInput).length;
+  const memberCount = parseUserIds(memberIdsInput).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden p-4">
@@ -99,12 +90,12 @@ export default function CreateGroupPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-300">Member Links</label>
+                <label className="block text-sm font-semibold text-gray-300">Member IDs</label>
                 <textarea
-                  value={memberLinksInput}
-                  onChange={(e) => setMemberLinksInput(e.target.value)}
+                  value={memberIdsInput}
+                  onChange={(e) => setMemberIdsInput(e.target.value)}
                   rows={4}
-                  placeholder="Paste user profile links (one per line or comma separated)&#10;Example: https://example.com/user/65a1b2c3d4e5f6g7h8i9j0k1"
+                  placeholder="Paste user IDs (separated by spaces or commas)&#10;Example: 65a1b2c3d4e5f6g7h8i9j0k1 65b2c3d4e5f6g7h8i9j0k1a2"
                   className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition backdrop-blur-md hover:bg-white/15 resize-none"
                 />
                 {memberCount > 0 && (

@@ -58,20 +58,11 @@ export default function GroupDetailPage() {
   const [expense, setExpense] = useState<Expense[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [adding, setAdding] = useState<boolean>(false);
-  const [userLinkToAdd, setUserLinkToAdd] = useState<string>("");
+  const [userIdToAdd, setUserIdToAdd] = useState<string>("");
   const [balances, setBalances] = useState<Balance[] | null>(null);
   const [settlements, setSettlements] = useState<Settlement[] | null>(null);
   const [msg, setMsg] = useState<string>("");
   const [msgType, setMsgType] = useState<"error" | "success">("error");
-
-  const extractUserIdFromLink = (link: string): string => {
-    const trimmed = link.trim();
-    const match = trimmed.match(/\/user\/([a-zA-Z0-9]+)$|\/user\/([a-zA-Z0-9]+)\/?$/);
-    if (match) {
-      return match[1] || match[2];
-    }
-    return trimmed;
-  };
 
   const fetchGroup = async (): Promise<void> => {
     const { data } = await axios.get(`/api/group/${groupId}`);
@@ -102,14 +93,14 @@ export default function GroupDetailPage() {
 
   const handleAddMember = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    if (!userLinkToAdd) return;
+    if (!userIdToAdd.trim()) return;
     setAdding(true);
     setMsg("");
 
     try {
-      const userId = extractUserIdFromLink(userLinkToAdd);
-      await axios.post(`/api/group/${groupId}`, { userId });
-      setUserLinkToAdd("");
+      const userId = userIdToAdd.trim();
+      await axios.post(`/api/group/${groupId}/members`, { userId });
+      setUserIdToAdd("");
       await fetchGroup();
       setMsg("Member added successfully!");
       setMsgType("success");
@@ -209,21 +200,34 @@ export default function GroupDetailPage() {
               </div>
             </div>
 
-            <form onSubmit={handleAddMember} className="flex gap-2 mb-6">
-              <input
-                type="text"
-                placeholder="Paste user profile link or ID"
-                value={userLinkToAdd}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUserLinkToAdd(e.target.value)}
-                className="flex-1 bg-white/10 border border-white/20 text-white placeholder-gray-500 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition backdrop-blur-md hover:bg-white/15"
-              />
-              <button
-                type="submit"
-                disabled={adding}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:opacity-50 text-white font-semibold rounded-lg transition transform hover:scale-105"
-              >
-                <FaUserPlus /> {adding ? "Adding..." : "Add"}
-              </button>
+            <form onSubmit={handleAddMember} className="mb-6">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Paste user ID"
+                  value={userIdToAdd}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUserIdToAdd(e.target.value)}
+                  className="flex-1 bg-white/10 border border-white/20 text-white placeholder-gray-500 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition backdrop-blur-md hover:bg-white/15"
+                />
+                <button
+                  type="submit"
+                  disabled={adding}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:opacity-50 text-white font-semibold rounded-lg transition transform hover:scale-105"
+                >
+                  <FaUserPlus /> {adding ? "Adding..." : "Add"}
+                </button>
+              </div>
+              
+              {msg && (
+                <div className={`text-sm p-3 rounded-lg flex items-center gap-2 mt-3 ${
+                  msgType === "success"
+                    ? "bg-green-500/20 border border-green-500/50 text-green-200"
+                    : "bg-red-500/20 border border-red-500/50 text-red-200"
+                }`}>
+                  <span>{msgType === "success" ? "✓" : "⚠"}</span>
+                  {msg}
+                </div>
+              )}
             </form>
 
             {Array.isArray(group.members) && group.members.length > 0 ? (
@@ -298,17 +302,6 @@ export default function GroupDetailPage() {
               ⚖️ Settlement Plan
             </button>
           </div>
-
-          {msg && (
-            <div className={`text-sm p-4 rounded-lg flex items-center gap-2 ${
-              msgType === "success"
-                ? "bg-green-500/20 border border-green-500/50 text-green-200"
-                : "bg-red-500/20 border border-red-500/50 text-red-200"
-            }`}>
-              <span>{msgType === "success" ? "✓" : "⚠"}</span>
-              {msg}
-            </div>
-          )}
 
           {balances && (
             <div className="mt-4">

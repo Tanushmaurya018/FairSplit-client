@@ -105,6 +105,7 @@ export default function Signup() {
                 value={userData.password}
                 onChange={handleChange}
                 required
+                minLength={6}
                 className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-400 px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition backdrop-blur-md hover:bg-white/15"
               />
             </div>

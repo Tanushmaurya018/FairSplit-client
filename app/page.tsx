@@ -29,6 +29,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -55,7 +56,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{animationDelay: "2s"}}></div>
+          <div className="absolute bottom-20 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: "2s" }}></div>
         </div>
         <div className="relative z-10 flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500/30 border-t-purple-500"></div>
@@ -67,11 +68,16 @@ export default function Home() {
 
   const uniqueMembers = new Set(groups.flatMap(g => (g.members || []).map(m => m._id)));
 
-  const userLink = user ? `https://example.com/user/${user._id}` : "";
+  // 🔹 Changed: now only user ID, no full URL
+  const userId = user?._id || "";
 
   const copyToClipboard = async (): Promise<void> => {
-    if (userLink) {
-      await navigator.clipboard.writeText(userLink);
+    if (userId) {
+      await navigator.clipboard.writeText(userId);
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+      }, 5000);
     }
   };
 
@@ -84,7 +90,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{animationDelay: "2s"}}></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: "2s" }}></div>
       </div>
 
       <div className="relative z-10">
@@ -115,15 +121,20 @@ export default function Home() {
             </div>
           </div>
 
+          {/* 🔹 Changed: display only user ID */}
           <div className="px-6 pb-4 flex items-center gap-3">
             <div className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-gray-400 text-sm truncate">
-              {userLink}
+              {userId}
             </div>
             <button
               onClick={copyToClipboard}
-              className="px-4 py-2 bg-white/10 border border-white/20 hover:bg-white/20 text-white font-semibold rounded-lg transition duration-200"
+              className={`px-4 py-2 border font-semibold rounded-lg transition duration-200 ${
+                copied
+                  ? 'bg-green-400/30 border-green-400/50 text-green-200'
+                  : 'bg-white/10 border-white/20 hover:bg-white/20 text-white'
+              }`}
             >
-              Copy Link
+              {copied ? 'Copied!' : 'Copy ID'}
             </button>
           </div>
         </header>
